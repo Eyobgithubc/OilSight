@@ -1,6 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import ruptures as rpt
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.stattools import adfuller
+from arch import arch_model
 
 def load_and_clean_data(file_path):
     """
@@ -63,7 +66,35 @@ def summarize_data(data):
 
 
 
+def apply_arima_model(data, order=(1, 1, 1)):
+    model = ARIMA(data['Price'], order=order)
+    model_fit = model.fit()
+    print(model_fit.summary())
+    return model_fit
 
+def apply_garch_model(data, p=1, q=1):
+    model = arch_model(data['Price'], vol='Garch', p=p, q=q)
+    model_fit = model.fit()
+    print(model_fit.summary())
+    return model_fit
+
+
+
+
+def check_stationarity(data):
+    result = adfuller(data['Price'])
+    print('ADF Statistic:', result[0])
+    print('p-value:', result[1])
+    return result[1] < 0.05
+
+
+def export_results_to_markdown(summary, file_name='analysis_report.md'):
+    with open(file_name, 'w') as f:
+        f.write("# Analysis Report\n")
+        f.write("## Data Summary\n")
+        for key, value in summary.items():
+            f.write(f"- {key}: {value}\n")
+    print(f"Results exported to {file_name}")
 
 
 
